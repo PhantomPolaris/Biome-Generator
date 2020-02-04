@@ -3,32 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[RequireComponent(typeof(MeshFilter))]
 public class Waves : MonoBehaviour
 {
     //Public Properties
-    public int Dimension = 10;
+    public int dimention = 100;
     public float UVScale = 2f;
-    public Octave[] Octaves;
+    public Octave[] octaves;
 
     //Mesh
-    protected MeshFilter MeshFilter;
-    protected Mesh Mesh;
+    public MeshFilter meshFilter;
+    public Mesh mesh;
 
     // Start is called before the first frame update
     void Start()
     {
         //Mesh Setup
-        Mesh = new Mesh();
-        Mesh.name = gameObject.name;
+        mesh = new Mesh();
+        mesh.name = gameObject.name;
 
-        Mesh.vertices = GenerateVerts();
-        Mesh.triangles = GenerateTries();
-        Mesh.uv = GenerateUVs();
-        Mesh.RecalculateNormals();
-        Mesh.RecalculateBounds();
+        mesh.vertices = GenerateVerts();
+        mesh.triangles = GenerateTries();
+        mesh.uv = GenerateUVs();
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
 
-        MeshFilter = gameObject.AddComponent<MeshFilter>();
-        MeshFilter.mesh = Mesh;
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+        GetComponent<MeshFilter>().mesh = mesh;
+        meshFilter.mesh = mesh;
     }
 
     public float GetHeight(Vector3 position)
@@ -44,14 +47,14 @@ public class Waves : MonoBehaviour
         var p4 = new Vector3(Mathf.Ceil(localPos.x), 0, Mathf.Ceil(localPos.z));
 
         //clamp if the position is outside the plane
-        p1.x = Mathf.Clamp(p1.x, 0, Dimension);
-        p1.z = Mathf.Clamp(p1.z, 0, Dimension);
-        p2.x = Mathf.Clamp(p2.x, 0, Dimension);
-        p2.z = Mathf.Clamp(p2.z, 0, Dimension);
-        p3.x = Mathf.Clamp(p3.x, 0, Dimension);
-        p3.z = Mathf.Clamp(p3.z, 0, Dimension);
-        p4.x = Mathf.Clamp(p4.x, 0, Dimension);
-        p4.z = Mathf.Clamp(p4.z, 0, Dimension);
+        p1.x = Mathf.Clamp(p1.x, 0, dimention);
+        p1.z = Mathf.Clamp(p1.z, 0, dimention);
+        p2.x = Mathf.Clamp(p2.x, 0, dimention);
+        p2.z = Mathf.Clamp(p2.z, 0, dimention);
+        p3.x = Mathf.Clamp(p3.x, 0, dimention);
+        p3.z = Mathf.Clamp(p3.z, 0, dimention);
+        p4.x = Mathf.Clamp(p4.x, 0, dimention);
+        p4.z = Mathf.Clamp(p4.z, 0, dimention);
 
         //get the max distance to one of the edges and take that to compute max - dist
         var max = Mathf.Max(Vector3.Distance(p1, localPos), Vector3.Distance(p2, localPos), Vector3.Distance(p3, localPos), Vector3.Distance(p4, localPos) + Mathf.Epsilon);
@@ -60,10 +63,10 @@ public class Waves : MonoBehaviour
                  + (max - Vector3.Distance(p3, localPos))
                  + (max - Vector3.Distance(p4, localPos) + Mathf.Epsilon);
         //weighted sum
-        var height = Mesh.vertices[index(p1.x, p1.z)].y * (max - Vector3.Distance(p1, localPos))
-                   + Mesh.vertices[index(p2.x, p2.z)].y * (max - Vector3.Distance(p2, localPos))
-                   + Mesh.vertices[index(p3.x, p3.z)].y * (max - Vector3.Distance(p3, localPos))
-                   + Mesh.vertices[index(p4.x, p4.z)].y * (max - Vector3.Distance(p4, localPos));
+        var height = mesh.vertices[index(p1.x, p1.z)].y * (max - Vector3.Distance(p1, localPos))
+                   + mesh.vertices[index(p2.x, p2.z)].y * (max - Vector3.Distance(p2, localPos))
+                   + mesh.vertices[index(p3.x, p3.z)].y * (max - Vector3.Distance(p3, localPos))
+                   + mesh.vertices[index(p4.x, p4.z)].y * (max - Vector3.Distance(p4, localPos));
 
         //scale
         return height * transform.lossyScale.y / dist;
@@ -72,11 +75,11 @@ public class Waves : MonoBehaviour
 
     private Vector3[] GenerateVerts()
     {
-        var verts = new Vector3[(Dimension + 1) * (Dimension + 1)];
+        var verts = new Vector3[(dimention + 1) * (dimention + 1)];
 
         //equaly distributed verts
-        for (int x = 0; x <= Dimension; x++)
-            for (int z = 0; z <= Dimension; z++)
+        for (int x = 0; x <= dimention; x++)
+            for (int z = 0; z <= dimention; z++)
                 verts[index(x, z)] = new Vector3(x, 0, z);
 
         return verts;
@@ -84,12 +87,12 @@ public class Waves : MonoBehaviour
 
     private int[] GenerateTries()
     {
-        var tries = new int[Mesh.vertices.Length * 6];
+        var tries = new int[mesh.vertices.Length * 6];
 
         //two triangles are one tile
-        for (int x = 0; x < Dimension; x++)
+        for (int x = 0; x < dimention; x++)
         {
-            for (int z = 0; z < Dimension; z++)
+            for (int z = 0; z < dimention; z++)
             {
                 tries[index(x, z) * 6 + 0] = index(x, z);
                 tries[index(x, z) * 6 + 1] = index(x + 1, z + 1);
@@ -105,12 +108,12 @@ public class Waves : MonoBehaviour
 
     private Vector2[] GenerateUVs()
     {
-        var uvs = new Vector2[Mesh.vertices.Length];
+        var uvs = new Vector2[mesh.vertices.Length];
 
         //always set one uv over n tiles than flip the uv and set it again
-        for (int x = 0; x <= Dimension; x++)
+        for (int x = 0; x <= dimention; x++)
         {
-            for (int z = 0; z <= Dimension; z++)
+            for (int z = 0; z <= dimention; z++)
             {
                 var vec = new Vector2((x / UVScale) % 2, (z / UVScale) % 2);
                 uvs[index(x, z)] = new Vector2(vec.x <= 1 ? vec.x : 2 - vec.x, vec.y <= 1 ? vec.y : 2 - vec.y);
@@ -122,7 +125,7 @@ public class Waves : MonoBehaviour
 
     private int index(int x, int z)
     {
-        return x * (Dimension + 1) + z;
+        return x * (dimention + 1) + z;
     }
 
     private int index(float x, float z)
@@ -133,31 +136,31 @@ public class Waves : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var verts = Mesh.vertices;
-        for (int x = 0; x <= Dimension; x++)
+        var verts = mesh.vertices;
+        for (int x = 0; x <= dimention; x++)
         {
-            for (int z = 0; z <= Dimension; z++)
+            for (int z = 0; z <= dimention; z++)
             {
                 var y = 0f;
-                for (int o = 0; o < Octaves.Length; o++)
+                for (int o = 0; o < octaves.Length; o++)
                 {
-                    if (Octaves[o].alternate)
+                    if (octaves[o].alternate)
                     {
-                        var perl = Mathf.PerlinNoise((x * Octaves[o].scale.x) / Dimension, (z * Octaves[o].scale.y) / Dimension) * Mathf.PI * 2f;
-                        y += Mathf.Cos(perl + Octaves[o].speed.magnitude * Time.time) * Octaves[o].height;
+                        var perl = Mathf.PerlinNoise((x * octaves[o].scale.x) / dimention, (z * octaves[o].scale.y) / dimention) * Mathf.PI * 2f;
+                        y += Mathf.Cos(perl + octaves[o].speed.magnitude * Time.time) * octaves[o].height;
                     }
                     else
                     {
-                        var perl = Mathf.PerlinNoise((x * Octaves[o].scale.x + Time.time * Octaves[o].speed.x) / Dimension, (z * Octaves[o].scale.y + Time.time * Octaves[o].speed.y) / Dimension) - 0.5f;
-                        y += perl * Octaves[o].height;
+                        var perl = Mathf.PerlinNoise((x * octaves[o].scale.x + Time.time * octaves[o].speed.x) / dimention, (z * octaves[o].scale.y + Time.time * octaves[o].speed.y) / dimention) - 0.5f;
+                        y += perl * octaves[o].height;
                     }
                 }
 
                 verts[index(x, z)] = new Vector3(x, y, z);
             }
         }
-        Mesh.vertices = verts;
-        Mesh.RecalculateNormals();
+        mesh.vertices = verts;
+        mesh.RecalculateNormals();
     }
 
     [Serializable]
