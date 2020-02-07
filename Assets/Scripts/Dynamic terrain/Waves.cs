@@ -31,7 +31,7 @@ public class Waves : MonoBehaviour
 
         meshFilter = gameObject.AddComponent<MeshFilter>();
         GetComponent<MeshFilter>().mesh = mesh;
-        meshFilter.mesh = mesh;
+        
     }
 
     public float GetHeight(Vector3 position)
